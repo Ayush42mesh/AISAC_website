@@ -1,164 +1,156 @@
-import React, { useState } from 'react';
-import { Linkedin, Github, Instagram, ArrowUpRight, ShieldCheck, Cpu, FileText, Users, Wrench, Palette, Sparkles, Award } from 'lucide-react';
-import { committees, teamSections, teamMembers } from './teamData';
+import React, { useState, useMemo, useRef, useLayoutEffect } from 'react';
+import { Sparkles, ShieldCheck, Users } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { heads, members } from './teamData';
 
-const sectionIcons = {
-  leadership: ShieldCheck,
-  technical: Cpu,
-  documentation: FileText,
-  pro: Users,
-  infra: Wrench,
-  creativity: Palette
-};
+gsap.registerPlugin(ScrollTrigger);
 
-export default function TeamPage({ onBackToHome }) {
-  const [activeTab, setActiveTab] = useState('aisac');
-  const [activeSectionFilter, setActiveSectionFilter] = useState('all');
+export default function TeamPage({ isEmbedded = false }) {
+  const [activeCategory, setActiveCategory] = useState('heads'); // 'heads' | 'members'
 
-  const currentCommittee = committees.find(c => c.id === activeTab) || committees[0];
-  const committeeData = teamMembers[activeTab] || {};
+  const shellRef = useRef(null);
+  const railRef = useRef(null);
+  const progressFillRef = useRef(null);
 
-  const filteredSections = activeSectionFilter === 'all'
-    ? teamSections
-    : teamSections.filter(s => s.id === activeSectionFilter);
+  const displayedList = useMemo(() => {
+    return activeCategory === 'heads' ? heads : members;
+  }, [activeCategory]);
+
+  useLayoutEffect(() => {
+    const shell = shellRef.current;
+    const rail = railRef.current;
+    if (!shell || !rail || displayedList.length === 0) return;
+
+    const ctx = gsap.context(() => {
+      const getDistance = () => {
+        const railWidth = rail.scrollWidth;
+        const containerWidth = shell.clientWidth;
+        return Math.max(0, railWidth - containerWidth + 100);
+      };
+
+      const distance = getDistance();
+      if (distance <= 0) return;
+
+      const st = ScrollTrigger.create({
+        trigger: shell,
+        start: 'top top-=200',
+        end: () => `+=${getDistance() * 1.3}`,
+        pin: true,
+        scrub: 0.8,
+        invalidateOnRefresh: true,
+        anticipatePin: 1,
+        onUpdate: self => {
+          gsap.set(rail, { x: -self.progress * distance });
+          if (progressFillRef.current) {
+            progressFillRef.current.style.width = `${Math.min(100, Math.max(0, self.progress * 100))}%`;
+          }
+        }
+      });
+
+      return () => st.kill();
+    }, shellRef);
+
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+      ctx.revert();
+    };
+  }, [displayedList, activeCategory]);
+
+  const totalCount = displayedList.length;
 
   return (
-    <div className="team-page">
-      {/* Team Page Hero Banner */}
-      <section className="team-hero section-pad">
-        <div className="team-hero-topline">
-          <span><i /> THE PEOPLE OF AISAC & CSI & ISTE</span>
-          <span>SEASON 2026 — 2027</span>
+    <div className={`team-page-pinned ${isEmbedded ? 'embedded' : ''}`} ref={shellRef}>
+      <div className="team-hero-header">
+        <div className="section-label">
+          <span>03 / COMMITTEE TEAMS</span>
+          <span>{totalCount} {activeCategory.toUpperCase()} ACTIVE · SCROLL DOWN TO SLIDE CARDS</span>
         </div>
 
-        <div className="team-hero-title">
-          <h1 className="hero-heading">
-            <span className="hero-line"><span>MEET THE</span></span>
-            <span className="hero-line pink"><span>LEADERS & CREATORS.</span></span>
-          </h1>
+        <div className="team-hero-title-row">
+          <h2 className="team-heading">
+            <span>MEET THE</span><br />
+            <span className="pink">LEADERS & CREATORS.</span>
+          </h2>
           <p className="team-hero-desc">
-            The visionary minds, engineers, organizers, and creators behind <strong>{currentCommittee.name}</strong> ({currentCommittee.fullName}).
+            The visionary minds, engineers, organizers, and creators behind our association.
           </p>
         </div>
 
-        {/* Main Committee Switcher (AISAC vs CSI) */}
-        <div className="committee-switcher-wrap">
-          <div className="committee-tabs" role="tablist" aria-label="Committee Selector">
-            {committees.map(c => (
-              <button
-                key={c.id}
-                role="tab"
-                aria-selected={activeTab === c.id}
-                className={`committee-tab ${activeTab === c.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(c.id)}
-              >
-                <Sparkles size={16} />
-                <span>{c.name}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Sub-section Filter Pills */}
-          <div className="section-filter-pills" role="group" aria-label="Section Filter">
+        {/* Controls Bar: Only Heads & Members Options */}
+        <div className="team-controls-bar" style={{ justifyContent: 'center' }}>
+          <div className="committee-tabs" role="tablist" aria-label="Team View Selector">
             <button
-              className={`pill ${activeSectionFilter === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveSectionFilter('all')}
+              role="tab"
+              aria-selected={activeCategory === 'heads'}
+              className={`committee-tab ${activeCategory === 'heads' ? 'active' : ''}`}
+              onClick={() => setActiveCategory('heads')}
             >
-              All Teams
+              <ShieldCheck size={18} />
+              <span>HEADS</span>
             </button>
-            {teamSections.map(s => {
-              const Icon = sectionIcons[s.id] || Award;
-              return (
-                <button
-                  key={s.id}
-                  className={`pill ${activeSectionFilter === s.id ? 'active' : ''}`}
-                  onClick={() => setActiveSectionFilter(s.id)}
-                >
-                  <Icon size={14} />
-                  <span>{s.title}</span>
-                </button>
-              );
-            })}
+
+            <button
+              role="tab"
+              aria-selected={activeCategory === 'members'}
+              className={`committee-tab ${activeCategory === 'members' ? 'active' : ''}`}
+              onClick={() => setActiveCategory('members')}
+            >
+              <Users size={18} />
+              <span>MEMBERS</span>
+            </button>
           </div>
         </div>
-      </section>
 
-      {/* Main Team Content Sections */}
-      <main className="team-content section-pad">
-        {filteredSections.map(section => {
-          const members = committeeData[section.id] || [];
-          const Icon = sectionIcons[section.id] || Award;
+        {/* Scroll Progress Bar Indicator */}
+        <div className="team-rail-progress-track">
+          <div className="team-rail-progress-fill" ref={progressFillRef} />
+        </div>
+      </div>
 
-          return (
-            <section key={section.id} id={`team-${section.id}`} className="team-section-block">
-              <div className="team-section-header">
-                <div className="section-label">
-                  <span>{section.kicker}</span>
-                  <span>{members.length} MEMBERS</span>
-                </div>
-                <div className="team-section-title-row">
-                  <h2>
-                    <Icon size={32} className="section-title-icon" />
-                    {section.title}
-                  </h2>
-                  <p>{section.desc}</p>
-                </div>
+      {/* HORIZONTAL RAIL OF RECTANGULAR CARDS */}
+      <div className="team-rail-wrapper">
+        <div className="team-rail" ref={railRef}>
+          {displayedList.map((m, idx) => (
+            <div key={m.id || idx} className="team-rail-card">
+              <div className="card-top-accent" style={{ background: m.avatarColor || 'linear-gradient(135deg, #f667c5, #85e3ed)' }} />
+              
+              <div className="card-header-line">
+                <span className="card-dept-badge">{m.dept || 'AISAC'}</span>
+                <span className="card-year-badge">{m.year}</span>
               </div>
 
-              {members.length > 0 ? (
-                <div className="team-grid">
-                  {members.map(m => (
-                    <div key={m.id} className="team-card">
-                      <div className="card-avatar-wrap">
-                        {m.photo ? (
-                          <img src={m.photo} alt={m.name} className="card-photo" />
-                        ) : (
-                          <div className="card-avatar-placeholder" style={{ background: m.avatarColor }}>
-                            <span className="avatar-initials">{m.initials}</span>
-                          </div>
-                        )}
-                        <span className="card-badge">{m.year}</span>
-                      </div>
+              <div className="card-photo-wrap">
+                {m.photo ? (
+                  <img
+                    src={m.photo}
+                    alt={m.name}
+                    className="card-photo"
+                    style={{
+                      objectPosition: m.photoPos || 'top center',
+                      transform: m.photoTransform || 'none'
+                    }}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="card-avatar-placeholder" style={{ background: m.avatarColor }}>
+                    <span className="avatar-initials">{m.initials}</span>
+                  </div>
+                )}
+              </div>
 
-                      <div className="card-info">
-                        <h3>{m.name}</h3>
-                        <p className="card-role">{m.role}</p>
-
-                        {/* <div className="card-socials">
-                          <a href={m.linkedin || '#'} aria-label={`${m.name} LinkedIn`} target="_blank" rel="noreferrer" className="social-btn">
-                            <Linkedin size={16} />
-                          </a>
-                          <a href={m.github || '#'} aria-label={`${m.name} GitHub`} target="_blank" rel="noreferrer" className="social-btn">
-                            <Github size={16} />
-                          </a>
-                          <a href={m.instagram || '#'} aria-label={`${m.name} Instagram`} target="_blank" rel="noreferrer" className="social-btn">
-                            <Instagram size={16} />
-                          </a>
-                        </div> */}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="team-empty">
-                  <p>Members for this section will be announced soon.</p>
-                </div>
-              )}
-            </section>
-          );
-        })}
-      </main>
-
-      {/* Footer Banner */}
-      {/* <footer className="team-footer section-pad">
-        <div className="team-footer-box">
-          <h2>WANT TO JOIN THE TEAM?</h2>
-          <p>Applications for committee heads and executive members open every academic season.</p>
-          <button className="button button-lime" onClick={onBackToHome}>
-            EXPLORE CAMPUS NIGHTS <ArrowUpRight size={20} />
-          </button>
+              <div className="card-info">
+                <h3 className="card-name">{m.name}</h3>
+                <p className="card-role">{m.role}</p>
+              </div>
+            </div>
+          ))}
         </div>
-      </footer> */}
+      </div>
     </div>
   );
 }

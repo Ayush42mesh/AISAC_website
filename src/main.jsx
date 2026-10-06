@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowUpRight, ArrowDown, ArrowRight, ArrowLeft, Plus, Minus, X, Check, Menu, MoveUpRight, MapPin, CalendarDays, Mail, Phone } from 'lucide-react';
+import { ArrowUpRight, ArrowDown, ArrowRight, ArrowLeft, Plus, Minus, X, Check, Menu, MoveUpRight, MapPin, CalendarDays, Mail, Phone, BrainCircuit, Target, Rocket, Zap, Award, Sparkles, ShieldCheck } from 'lucide-react';
 import { events } from './events';
 import Poster from './Poster';
 import ArcadeObject from './ArcadeObject';
@@ -8,6 +8,8 @@ import useScrollMotion from './useScrollMotion';
 import TeamPage from './TeamPage';
 import EventsPage from './EventsPage';
 import ContactPage from './ContactPage';
+import RotatingEventsSection from './RotatingEventsSection';
+import ScrollingEventsMarquee from './ScrollingEventsMarquee';
 import './style.css';
 
 const featured = [events[0], events[1], events[2], events[3], events[8], events[11]];
@@ -72,15 +74,23 @@ function App() {
   useEffect(() => {
     const checkHash = () => {
       if (window.location.hash === '#team') {
-        setPage('team');
+        setPage('home');
+        setTimeout(() => {
+          const el = document.getElementById('team');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       } else if (window.location.hash === '#contact') {
-        setPage('contact');
-      } else if (window.location.hash === '#events-page' || window.location.hash === '#events') {
-        if (window.location.hash === '#events-page') {
-          setPage('events');
-        } else {
-          setPage('home');
-        }
+        setPage('home');
+        setTimeout(() => {
+          const el = document.getElementById('contact');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else if (window.location.hash === '#events-home' || window.location.hash === '#events-page' || window.location.hash === '#events') {
+        setPage('home');
+        setTimeout(() => {
+          const el = document.getElementById('events-home');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       } else {
         setPage('home');
       }
@@ -121,17 +131,29 @@ function App() {
 
   const goTo = (targetPage, sectionId) => {
     setMenu(false);
-    setPage(targetPage);
     if (targetPage === 'team') {
+      setPage('home');
       window.location.hash = '#team';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (targetPage === 'events') {
-      window.location.hash = '#events-page';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        const el = document.getElementById('team');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     } else if (targetPage === 'contact') {
+      setPage('home');
       window.location.hash = '#contact';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        const el = document.getElementById('contact');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    } else if (targetPage === 'events') {
+      setPage('home');
+      window.location.hash = '#events-home';
+      setTimeout(() => {
+        const el = document.getElementById('events-home');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     } else {
+      setPage('home');
       if (sectionId) {
         window.location.hash = `#${sectionId}`;
         setTimeout(() => {
@@ -159,12 +181,12 @@ function App() {
         </a>
 
         <nav className={menu ? 'navigation is-open' : 'navigation'} aria-label="Main navigation">
+          <a href="#top" onClick={() => goTo('home')} className={page === 'home' && (!window.location.hash || window.location.hash === '#top') ? 'active-nav' : ''}>HOME<span></span></a>
           <a href="#about" onClick={() => goTo('home', 'about')}>ABOUT<span></span></a>
           <a href="#staff" onClick={() => goTo('home', 'staff')}>STAFF<span></span></a>
-          <a href="#schedule" onClick={() => goTo('home', 'schedule')}>THE PLAN<span></span></a>
-          <a href="#events-page" onClick={() => goTo('events')} className={page === 'events' ? 'active-nav' : ''}>EVENTS<span></span></a>
-          <a href="#team" onClick={() => goTo('team')} className={page === 'team' ? 'active-nav' : ''}>TEAM<span></span></a>
-          <a href="#contact" onClick={() => goTo('contact')} className={page === 'contact' ? 'active-nav' : ''}>CONTACT<span></span></a>
+          <a href="#team" onClick={() => goTo('team')} className={page === 'home' && window.location.hash === '#team' ? 'active-nav' : ''}>TEAM<span></span></a>
+          <a href="#events-home" onClick={(e) => { e.preventDefault(); goTo('events'); }}>EVENTS<span></span></a>
+          <a href="#contact" onClick={() => goTo('contact')} className={page === 'home' && window.location.hash === '#contact' ? 'active-nav' : ''}>CONTACT<span></span></a>
         </nav>
 
         <a className="header-cta" href="#events-page" onClick={(e) => { e.preventDefault(); goTo('events'); }}>
@@ -176,13 +198,6 @@ function App() {
         </button>
       </header>
 
-      {page === 'team' ? (
-        <TeamPage onBackToHome={() => goTo('home')} />
-      ) : page === 'events' ? (
-        <EventsPage onBackToHome={() => goTo('home')} />
-      ) : page === 'contact' ? (
-        <ContactPage onBackToHome={() => goTo('home')} onGoToEvents={() => goTo('events')} />
-      ) : (
         <main>
           <section className="hero" id="top" aria-labelledby="hero-heading">
             <div className="hero-media">
@@ -244,49 +259,87 @@ function App() {
               <span>DRIVING AI EXCELLENCE & COLLABORATION</span>
             </div>
 
+            <div className="about-hero-header" data-reveal>
+              <div className="about-badge-pill">
+                <BrainCircuit size={16} className="badge-icon" />
+                <span>AISAC & CSI STUDENT CHAPTER</span>
+              </div>
+              <h2 id="about-heading" className="about-title">
+                PIONEERING <span className="pink">ARTIFICIAL INTELLIGENCE</span><br />
+                FOR TOMORROW'S LEADERS.
+              </h2>
+              <p className="about-subtitle">
+                Where theoretical machine learning meets real-world execution. We provide students with cut-edge AI labs, high-stakes hackathons, and a thriving community of tech innovators.
+              </p>
+            </div>
+
             <div className="about-pro-grid">
-              {/* Rectangle Card 1: Identity */}
-              <div className="about-pro-card" data-reveal>
+              {/* Card 1: Identity */}
+              <div className="about-pro-card identity-card" data-reveal>
                 <div className="card-topline">
                   <span className="card-index">01</span>
-                  <span className="card-tag">OUR IDENTITY</span>
+                  <span className="card-tag"><Sparkles size={13} /> OUR IDENTITY</span>
                 </div>
-                <h3 className="card-title">Vibrant Student AI Community</h3>
+                <div className="card-icon-header">
+                  <BrainCircuit size={32} className="card-feature-icon" />
+                  <h3 className="card-title">Vibrant Student AI Community</h3>
+                </div>
                 <p className="card-body">
-                  <strong>AISAC (Artificial Intelligence Students Association Committee)</strong> is a vibrant student community dedicated to advancing AI knowledge, fostering creativity, and inspiring innovation. Our teams work together across research, development, and outreach to create an impact in the field of AI.
+                  <strong>AISAC</strong> is a student-driven ecosystem dedicated to advancing AI knowledge, fostering technical creativity, and inspiring real-world innovation across research, software engineering, and outreach.
                 </p>
+                <div className="card-pill-tags">
+                  <span>#Research</span>
+                  <span>#Development</span>
+                  <span>#Community</span>
+                </div>
                 <div className="card-footer-accent">
-                  <span className="accent-dot" />
+                  <span className="accent-dot lime" />
                   <span>RESEARCH · DEVELOPMENT · OUTREACH</span>
                 </div>
               </div>
 
-              {/* Rectangle Card 2: Mission */}
-              <div className="about-pro-card highlight-card" data-reveal>
+              {/* Card 2: Mission */}
+              <div className="about-pro-card highlight-card mission-card" data-reveal>
                 <div className="card-topline">
                   <span className="card-index">02</span>
-                  <span className="card-tag">OUR MISSION</span>
+                  <span className="card-tag"><Target size={13} /> OUR MISSION</span>
                 </div>
-                <h3 className="card-title">Bridge Theory & Real-World AI</h3>
+                <div className="card-icon-header">
+                  <Target size={32} className="card-feature-icon pink" />
+                  <h3 className="card-title">Bridge Theory & Real-World AI</h3>
+                </div>
                 <p className="card-body">
-                  We compile workshops, hackathons, and research modules to bridge theoretical algorithms with real-world application. Our prime directive is to cultivate innovation and excellence in machine learning development.
+                  We bridge the gap between academic algorithms and industry deployment through hands-on hackathons, intensive ML workshops, and collaborative open-source AI projects.
                 </p>
+                <div className="card-pill-tags">
+                  <span>#Hackathons</span>
+                  <span>#ML-Modules</span>
+                  <span>#NeuralNets</span>
+                </div>
                 <div className="card-footer-accent">
                   <span className="accent-dot pink" />
                   <span>WORKSHOPS · HACKATHONS · ML MODULES</span>
                 </div>
               </div>
 
-              {/* Rectangle Card 3: Vision */}
+              {/* Card 3: Vision */}
               <div className="about-pro-card vision-card" data-reveal>
                 <div className="card-topline">
                   <span className="card-index">03</span>
-                  <span className="card-tag">OUR VISION</span>
+                  <span className="card-tag"><Rocket size={13} /> OUR VISION</span>
                 </div>
-                <h3 className="card-title">Future-Ready Tech Leaders</h3>
+                <div className="card-icon-header">
+                  <Rocket size={32} className="card-feature-icon cyan" />
+                  <h3 className="card-title">Future-Ready Tech Leaders</h3>
+                </div>
                 <p className="card-body">
-                  We aim to empower every student with cutting-edge AI skills, ethical technology awareness, and hands-on experience to lead the global technological revolution.
+                  Empowering every student with cutting-edge artificial intelligence capabilities, ethical technology awareness, and the leadership mindset to shape the technological future.
                 </p>
+                <div className="card-pill-tags">
+                  <span>#EthicalAI</span>
+                  <span>#Leadership</span>
+                  <span>#Innovation</span>
+                </div>
                 <div className="card-footer-accent">
                   <span className="accent-dot cyan" />
                   <span>ETHICAL AI · INNOVATION · LEADERSHIP</span>
@@ -294,10 +347,49 @@ function App() {
               </div>
             </div>
 
+            {/* Dynamic Pillars Grid */}
+            <div className="about-pillars-grid" data-reveal>
+              <div className="pillar-item">
+                <Zap size={22} className="pillar-icon lime" />
+                <div>
+                  <h4>Hands-on AI Workshops</h4>
+                  <p>Master PyTorch, Transformers, LLMs, and Computer Vision with live coding.</p>
+                </div>
+              </div>
+              <div className="pillar-item">
+                <Award size={22} className="pillar-icon pink" />
+                <div>
+                  <h4>Hackathons & Sprints</h4>
+                  <p>Compete, build working prototypes, and win prizes in 24-hour hackathons.</p>
+                </div>
+              </div>
+              <div className="pillar-item">
+                <ShieldCheck size={22} className="pillar-icon cyan" />
+                <div>
+                  <h4>Industry & Faculty Mentorship</h4>
+                  <p>Learn directly from expert professors, industry engineers, and alum leaders.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
             <div className="stats" data-reveal>
-              <div><strong>15+<span></span></strong><p>EVENTS HOSTED</p></div>
-              <div><strong>100+</strong><p>PARTICIPANTS</p></div>
-              <div><strong>∞</strong><p>INNOVATIONS AHEAD.</p></div>
+              <div className="stat-box">
+                <strong>15+</strong>
+                <p>MAJOR EVENTS HOSTED</p>
+              </div>
+              <div className="stat-box">
+                <strong>500+</strong>
+                <p>ACTIVE PARTICIPANTS</p>
+              </div>
+              <div className="stat-box">
+                <strong>10+</strong>
+                <p>HANDS-ON WORKSHOPS</p>
+              </div>
+              <div className="stat-box">
+                <strong className="pink">∞</strong>
+                <p>INNOVATIONS AHEAD.</p>
+              </div>
             </div>
           </section>
 
@@ -349,9 +441,17 @@ function App() {
             <div className="interlude-text">Don’t just be a spectator—be part of the action!</div>
           </section>
 
-          <section className="schedule section-pad" id="schedule" aria-labelledby="schedule-heading">
+          {/* Integrated Animated Team Section */}
+          <section className="team-home-wrap section-pad" id="team">
+            <TeamPage onBackToHome={() => goTo('home')} isEmbedded={true} />
+          </section>
+
+          {/* 3D Circular Rotating Events Section */}
+          <RotatingEventsSection onSelectEvent={(e) => open('detail', e)} />
+
+          {/* <section className="schedule section-pad" id="schedule" aria-labelledby="schedule-heading">
             <div className="section-label">
-              <span>03 / MAKE SOME PLANS</span>
+              <span>04 / MAKE SOME PLANS</span>
               <span>OCTOBER 2026. AFTER CLASS.</span>
             </div>
 
@@ -384,7 +484,7 @@ function App() {
               <span>EXPLORE ALL AISAC & CSI INITIATIVES.</span>
               <button className="inline-link" onClick={() => goTo('events')}>EXPLORE EVENTS PAGE <ArrowRight size={18} /></button>
             </div>
-          </section>
+          </section> */}
 
           <section className="faq section-pad" aria-labelledby="faq-heading">
             <div className="faq-intro">
@@ -410,9 +510,14 @@ function App() {
             </div>
           </section>
 
+          {/* Integrated Contact Section Above Reserve Closing */}
+          <section className="contact-home-wrap" id="contact">
+            <ContactPage onBackToHome={() => goTo('home')} onGoToEvents={() => goTo('events')} />
+          </section>
+
           <section className="closing section-pad" id="reserve" aria-labelledby="reserve-heading">
             <div className="section-label">
-              <span>04 / COME AS YOU ARE</span>
+              <span>05 / COME AS YOU ARE</span>
               <span>GO HOME WITH A STORY.</span>
             </div>
 
@@ -442,7 +547,6 @@ function App() {
             </div>
           </section>
         </main>
-      )}
 
       <footer className="site-footer section-pad">
         <div className="footer-grid">
@@ -460,9 +564,9 @@ function App() {
           <div className="footer-col nav-col">
             <h4 className="footer-col-title">NAVIGATION</h4>
             <ul className="footer-nav-list">
+              <li><a href="#top" onClick={(e) => { e.preventDefault(); goTo('home'); }}>HOME</a></li>
               <li><a href="#about" onClick={(e) => { e.preventDefault(); goTo('home', 'about'); }}>ABOUT</a></li>
               <li><a href="#staff" onClick={(e) => { e.preventDefault(); goTo('home', 'staff'); }}>STAFF</a></li>
-              <li><a href="#schedule" onClick={(e) => { e.preventDefault(); goTo('home', 'schedule'); }}>THE PLAN</a></li>
               <li><a href="#events-page" onClick={(e) => { e.preventDefault(); goTo('events'); }}>EVENTS</a></li>
               <li><a href="#team" onClick={(e) => { e.preventDefault(); goTo('team'); }}>THE TEAM</a></li>
               <li><a href="#contact" onClick={(e) => { e.preventDefault(); goTo('contact'); }}>CONTACT</a></li>
@@ -523,9 +627,11 @@ function App() {
               </div>
 
               <div className="detail-copy">
-                <span className="section-label">YOUR NEXT ADVENTURE</span>
+                <span className="section-label">FULL EVENT DETAILS & DESCRIPTION</span>
                 <h2 id="dialog-heading">{chosen.title}<span>.</span></h2>
-                <p>{chosen.description}</p>
+                <p style={{ fontSize: '15px', lineHeight: '1.7', color: '#dedcd2', marginTop: '14px' }}>
+                  {chosen.description}
+                </p>
                 <dl className="detail-meta">
                   <div>
                     <dt><CalendarDays size={16} /> WHEN</dt>
@@ -542,6 +648,28 @@ function App() {
                 <button className="detail-back" onClick={close}>
                   <ArrowLeft size={15} /> BACK TO EXPLORING
                 </button>
+
+                {/* SCROLLING ANIMATION OF EVENTS BELOW DETAILS */}
+                <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '16px', width: '100%' }}>
+                  <ScrollingEventsMarquee onSelectEvent={(e) => setChosen(e)} title="MORE EVENTS STREAM" compact={true} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {modal === 'reserve' && (
+            <div className="detail-layout">
+              <div className="detail-copy" style={{ width: '100%', maxWidth: '580px', margin: '0 auto', textAlign: 'center' }}>
+                <span className="section-label" style={{ justifyContent: 'center' }}>🎉 RESERVATION CONFIRMED</span>
+                <h2 id="dialog-heading" style={{ fontSize: '38px', marginTop: '12px' }}>YOU'RE REGISTERED FOR {chosen.title}!<span>.</span></h2>
+                <p style={{ marginTop: '16px', fontSize: '15px', color: '#dedcd2', lineHeight: '1.7' }}>
+                  Your spot has been successfully reserved for <strong>{chosen.title} ({chosen.subtheme})</strong> on <strong>{chosen.date} 2026 at {chosen.time}</strong> located at <strong>{chosen.venue}</strong>.
+                </p>
+                <div style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                  <button className="button button-lime" onClick={close}>
+                    DONE / CLOSE POPUP <ArrowUpRight size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -38,7 +38,7 @@ export default function useScrollMotion(root) {
         if (scope.querySelector('.about-stamp')) {
           gsap.to('.about-stamp', { rotation: 36, y: -75, ease: 'none', scrollTrigger: { trigger: '.about', start: 'top bottom', end: 'bottom top', scrub: true } });
         }
-        
+
         const reveals = scope.querySelectorAll('[data-reveal]');
         if (reveals.length) {
           gsap.utils.toArray(reveals).forEach(el => gsap.from(el, { y: 45, opacity: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%', once: true } }));
