@@ -1,18 +1,19 @@
 export const heads = [
-  { id: 'h-1', name: 'Aayush Karbhal', role: 'Chairman', dept: 'AISAC & CSI', year: '3rd Year', avatarColor: 'linear-gradient(135deg, #f667c5, #85e3ed)', initials: 'AK' },
+  { id: 'h-1', name: 'Aayush Karbhal', role: 'Chairman', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/aayush-karbhal.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #f667c5, #85e3ed)', initials: 'AK' },
   { id: 'h-2', name: 'Aditi Sahu', role: 'President', dept: 'ISTE', year: '3rd Year', photo: '/assets/aditi-sahu.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #85e3ed, #f667c5)', initials: 'AS' },
   { id: 'h-3', name: 'Aarya Yerankar', role: 'Secretary', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/aarya-yerankar.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #d4f77c, #f667c5)', initials: 'AY' },
-  { id: 'h-4', name: 'Aadi Kundar', role: 'Secretary', dept: 'ISTE', year: '3rd Year', avatarColor: 'linear-gradient(135deg, #f5db64, #5de8ef)', initials: 'AK' },
+  { id: 'h-4', name: 'Aadi Kundar', role: 'Secretary', dept: 'ISTE', year: '3rd Year', photo: '/assets/aadi-kundar.png', photoPos: 'center 35%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #f5db64, #5de8ef)', initials: 'AK' },
   { id: 'h-5', name: 'Trisha Shetty', role: 'Joint Secretary', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/trisha-shetty.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #85e3ed, #d4f77c)', initials: 'TS' },
   { id: 'h-6', name: 'Aditya Chaurasia', role: 'Joint Secretary', dept: 'ISTE', year: '3rd Year', photo: '/assets/aditya-chaurasia.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #fa54bd, #85e3ed)', initials: 'AC' },
   { id: 'h-7', name: 'Darpan Shah', role: 'Treasurer', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/darpan-shah.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #f667c5, #141513)', initials: 'DS' },
-  { id: 'h-8', name: 'Hiya Modi', role: 'Treasurer', dept: 'ISTE', year: '3rd Year', avatarColor: 'linear-gradient(135deg, #5de8ef, #f5db64)', initials: 'HM' },
+  { id: 'h-8', name: 'Hiya Modi', role: 'Treasurer', dept: 'ISTE', year: '3rd Year', photo: '/assets/hiya-modi.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #5de8ef, #f5db64)', initials: 'HM' },
   { id: 'h-9', name: 'Parth Kariya', role: 'Technical Head', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/parth-kariya.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #85e3ed, #141513)', initials: 'PK' },
   { id: 'h-10', name: 'Ayush Meshram', role: 'Technical Head', dept: 'ISTE', year: '3rd Year', photo: '/assets/ayush-meshram.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #f667c5, #85e3ed)', initials: 'AM' },
-  { id: 'h-11', name: 'Pankaj Gujuri', role: 'Documentation Head', dept: 'AISAC & CSI', year: '3rd Year', avatarColor: 'linear-gradient(135deg, #d4f77c, #141513)', initials: 'PG' },
+  { id: 'h-11', name: 'Pankaj Gujuri', role: 'Documentation Head', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/pankaj-gujuri.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #d4f77c, #141513)', initials: 'PG' },
   { id: 'h-12', name: 'Anuj Gangawane', role: 'Documentation Head', dept: 'ISTE', year: '3rd Year', photo: '/assets/anuj-gangawane.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #85e3ed, #fa54bd)', initials: 'AG' },
   { id: 'h-13', name: 'Sharayou Sanap', role: 'PRO Head', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/sharyou-sanap.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #f667c5, #d4f77c)', initials: 'SS' },
-  { id: 'h-14', name: 'Archit Shinde', role: 'Infra and Security Head', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/archit-shinde.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #85e3ed, #d4f77c)', initials: 'AS' }
+  { id: 'h-14', name: 'Archit Shinde', role: 'Infra and Security Head', dept: 'AISAC & CSI', year: '3rd Year', photo: '/assets/archit-shinde.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #85e3ed, #d4f77c)', initials: 'AS' },
+  { id: 'h-15', name: 'Dhruv Dwivedi', role: 'Infra and Security Head', dept: 'ISTE', year: '3rd Year', photo: '/assets/dhruv-dwivedi.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #5de8ef, #fa54bd)', initials: 'DD' }
 ];
 
 export const members = [
@@ -34,7 +35,7 @@ export const members = [
   { id: 'm-16', name: 'Sanika Kathore', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #85e3ed, #f667c5)', initials: 'SK' },
   { id: 'm-17', name: 'Dhiraj Balotia', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #5de8ef, #d4f77c)', initials: 'DB' },
   { id: 'm-18', name: 'Harish Choudhary', role: 'Committee Member', year: '2nd Year', photo: '/assets/harish-choudhary.png', photoPos: 'center 15%', avatarColor: 'linear-gradient(135deg, #f667c5, #141513)', initials: 'HC' },
-  { id: 'm-19', name: 'Shaswat Prasad', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #d4f77c, #85e3ed)', initials: 'SP' },
+  { id: 'm-19', name: 'Shashwat Santosh Prasad', role: 'Committee Member', year: '2nd Year', photo: '/assets/shashwat-prasad.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #d4f77c, #85e3ed)', initials: 'SP' },
   { id: 'm-20', name: 'Durva Bhosale', role: 'Committee Member', year: '2nd Year', photo: '/assets/durva-bhosale.png', photoPos: 'center 15%', photoTransform: 'scale(1.05)', avatarColor: 'linear-gradient(135deg, #fa54bd, #f5db64)', initials: 'DB' },
   { id: 'm-21', name: 'Sakshi Bajbalkar', role: 'Committee Member', year: '2nd Year', photo: '/assets/sakshi-bajbalkar.png', photoPos: 'center 15%', avatarColor: 'linear-gradient(135deg, #85e3ed, #f667c5)', initials: 'SB' },
   { id: 'm-22', name: 'Harshini Vuradi', role: 'Committee Member', year: '2nd Year', photo: '/assets/harshini-vuradi.png', photoPos: 'center 28%', photoTransform: 'scale(1.15)', avatarColor: 'linear-gradient(135deg, #f5db64, #d4f77c)', initials: 'HV' },

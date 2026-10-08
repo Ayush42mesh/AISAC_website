@@ -54,6 +54,7 @@ const staffMembers = [
     name: 'Prof. Rohan Shetty',
     role: 'Staff Co-ordinator',
     image: '/assets/prof-rohan.png',
+    imagePos: 'center 20%',
     bio: 'Mentoring project teams, technical workshops, hackathons, and fostering student industry interaction.'
   },
   {
@@ -476,7 +477,12 @@ function App() {
                   {staffMembers.map(staff => (
                     <div className="staff-card" key={staff.id} data-reveal>
                       <div className="staff-photo-wrap">
-                        <img src={staff.image} alt={staff.name} className="staff-photo" />
+                        <img
+                          src={staff.image}
+                          alt={staff.name}
+                          className="staff-photo"
+                          style={staff.imagePos ? { objectPosition: staff.imagePos } : undefined}
+                        />
                         <span className="staff-badge">{staff.role}</span>
                       </div>
                       <div className="staff-info">
