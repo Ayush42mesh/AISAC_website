@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useLayoutEffect } from 'react';
-import { Sparkles, ShieldCheck, Users } from 'lucide-react';
+import { Sparkles, ShieldCheck, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { heads, members } from './teamData';
@@ -12,10 +12,39 @@ export default function TeamPage({ isEmbedded = false }) {
   const shellRef = useRef(null);
   const railRef = useRef(null);
   const progressFillRef = useRef(null);
+  const currentOffsetRef = useRef(0);
 
   const displayedList = useMemo(() => {
     return activeCategory === 'heads' ? heads : members;
   }, [activeCategory]);
+
+  const handleManualMove = (direction) => {
+    const rail = railRef.current;
+    const shell = shellRef.current;
+    if (!rail || !shell) return;
+
+    const railWidth = rail.scrollWidth;
+    const containerWidth = shell.clientWidth;
+    const maxDistance = Math.max(0, railWidth - containerWidth + 60);
+    const cardStep = 285; // card width + gap
+
+    let targetX = direction === 'next' 
+      ? currentOffsetRef.current + cardStep 
+      : currentOffsetRef.current - cardStep;
+
+    targetX = Math.max(0, Math.min(targetX, maxDistance));
+    currentOffsetRef.current = targetX;
+
+    gsap.to(rail, {
+      x: -targetX,
+      duration: 0.45,
+      ease: 'power2.out'
+    });
+
+    if (progressFillRef.current && maxDistance > 0) {
+      progressFillRef.current.style.width = `${Math.min(100, (targetX / maxDistance) * 100)}%`;
+    }
+  };
 
   useLayoutEffect(() => {
     const shell = shellRef.current;
@@ -26,7 +55,7 @@ export default function TeamPage({ isEmbedded = false }) {
       const getDistance = () => {
         const railWidth = rail.scrollWidth;
         const containerWidth = shell.clientWidth;
-        return Math.max(0, railWidth - containerWidth + 100);
+        return Math.max(0, railWidth - containerWidth + 60);
       };
 
       const distance = getDistance();
@@ -34,14 +63,16 @@ export default function TeamPage({ isEmbedded = false }) {
 
       const st = ScrollTrigger.create({
         trigger: shell,
-        start: 'top top-=200',
-        end: () => `+=${getDistance() * 1.3}`,
+        start: isEmbedded ? 'top 20px' : 'top top',
+        end: () => `+=${Math.max(distance * 0.9, 600)}`,
         pin: true,
-        scrub: 0.8,
+        scrub: 0.6,
         invalidateOnRefresh: true,
         anticipatePin: 1,
         onUpdate: self => {
-          gsap.set(rail, { x: -self.progress * distance });
+          const currentX = self.progress * distance;
+          currentOffsetRef.current = currentX;
+          gsap.set(rail, { x: -currentX });
           if (progressFillRef.current) {
             progressFillRef.current.style.width = `${Math.min(100, Math.max(0, self.progress * 100))}%`;
           }
@@ -68,41 +99,64 @@ export default function TeamPage({ isEmbedded = false }) {
       <div className="team-hero-header">
         <div className="section-label">
           <span>03 / COMMITTEE TEAMS</span>
-          <span>{totalCount} {activeCategory.toUpperCase()} ACTIVE · SCROLL DOWN TO SLIDE CARDS</span>
+          <span>{totalCount} {activeCategory.toUpperCase()} ACTIVE · SCROLL OR USE ARROWS TO SLIDE</span>
         </div>
 
         <div className="team-hero-title-row">
-          <h2 className="team-heading">
-            <span>MEET THE</span><br />
-            <span className="pink">LEADERS & CREATORS.</span>
-          </h2>
-          <p className="team-hero-desc">
-            The visionary minds, engineers, organizers, and creators behind our association.
-          </p>
-        </div>
+          <div className="team-title-left">
+            <h2 className="team-heading">
+              <span>MEET THE</span> <span className="pink">LEADERS & CREATORS.</span>
+            </h2>
+            <p className="team-hero-desc">
+              The visionary minds, engineers, organizers, and creators behind our association.
+            </p>
+          </div>
 
-        {/* Controls Bar: Only Heads & Members Options */}
-        <div className="team-controls-bar" style={{ justifyContent: 'center' }}>
-          <div className="committee-tabs" role="tablist" aria-label="Team View Selector">
-            <button
-              role="tab"
-              aria-selected={activeCategory === 'heads'}
-              className={`committee-tab ${activeCategory === 'heads' ? 'active' : ''}`}
-              onClick={() => setActiveCategory('heads')}
-            >
-              <ShieldCheck size={18} />
-              <span>HEADS</span>
-            </button>
+          {/* Controls Bar: Heads/Members and Manual Move Buttons */}
+          <div className="team-controls-bar">
+            <div className="committee-tabs" role="tablist" aria-label="Team View Selector">
+              <button
+                role="tab"
+                aria-selected={activeCategory === 'heads'}
+                className={`committee-tab ${activeCategory === 'heads' ? 'active' : ''}`}
+                onClick={() => { setActiveCategory('heads'); currentOffsetRef.current = 0; }}
+              >
+                <ShieldCheck size={16} />
+                <span>HEADS</span>
+              </button>
 
-            <button
-              role="tab"
-              aria-selected={activeCategory === 'members'}
-              className={`committee-tab ${activeCategory === 'members' ? 'active' : ''}`}
-              onClick={() => setActiveCategory('members')}
-            >
-              <Users size={18} />
-              <span>MEMBERS</span>
-            </button>
+              <button
+                role="tab"
+                aria-selected={activeCategory === 'members'}
+                className={`committee-tab ${activeCategory === 'members' ? 'active' : ''}`}
+                onClick={() => { setActiveCategory('members'); currentOffsetRef.current = 0; }}
+              >
+                <Users size={16} />
+                <span>MEMBERS</span>
+              </button>
+            </div>
+
+            {/* Manual Navigation Buttons Beside Scroll */}
+            <div className="team-manual-nav-group">
+              <button
+                className="team-manual-btn prev-btn"
+                onClick={() => handleManualMove('prev')}
+                aria-label="Previous members"
+                title="Slide Left"
+              >
+                <ChevronLeft size={17} />
+                <span>PREV</span>
+              </button>
+              <button
+                className="team-manual-btn next-btn"
+                onClick={() => handleManualMove('next')}
+                aria-label="Next members"
+                title="Slide Right"
+              >
+                <span>NEXT</span>
+                <ChevronRight size={17} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -114,6 +168,22 @@ export default function TeamPage({ isEmbedded = false }) {
 
       {/* HORIZONTAL RAIL OF RECTANGULAR CARDS */}
       <div className="team-rail-wrapper">
+        {/* Floating Side Move Buttons on edges */}
+        <button
+          className="team-floating-btn prev-btn"
+          onClick={() => handleManualMove('prev')}
+          aria-label="Slide Left"
+        >
+          <ChevronLeft size={22} />
+        </button>
+        <button
+          className="team-floating-btn next-btn"
+          onClick={() => handleManualMove('next')}
+          aria-label="Slide Right"
+        >
+          <ChevronRight size={22} />
+        </button>
+
         <div className="team-rail" ref={railRef}>
           {displayedList.map((m, idx) => (
             <div key={m.id || idx} className="team-rail-card">

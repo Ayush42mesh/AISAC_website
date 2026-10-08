@@ -41,12 +41,9 @@ export default function useScrollMotion(root) {
 
         const reveals = scope.querySelectorAll('[data-reveal]');
         if (reveals.length) {
-          gsap.utils.toArray(reveals).forEach(el => gsap.from(el, { y: 45, opacity: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%', once: true } }));
+          gsap.utils.toArray(reveals).forEach(el => gsap.from(el, { y: 20, opacity: 0, duration: 0.7, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%', once: true } }));
         }
 
-        if (scope.querySelector('.interlude-text')) {
-          gsap.to('.interlude-text', { xPercent: -15, ease: 'none', scrollTrigger: { trigger: '.interlude', start: 'top bottom', end: 'bottom top', scrub: 1 } });
-        }
         if (scope.querySelector('.interlude-icon')) {
           gsap.to('.interlude-icon', { rotation: 120, y: -90, ease: 'none', scrollTrigger: { trigger: '.interlude', start: 'top bottom', end: 'bottom top', scrub: true } });
         }
