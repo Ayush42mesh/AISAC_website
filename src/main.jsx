@@ -10,7 +10,28 @@ import EventsPage from './EventsPage';
 import ContactPage from './ContactPage';
 import RotatingEventsSection from './RotatingEventsSection';
 import ScrollingEventsMarquee from './ScrollingEventsMarquee';
+import FaultyTerminal from './FaultyTerminal';
+import GridScan from './GridScan';
 import './style.css';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.warn("React ErrorBoundary caught runtime component error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
+    }
+    return this.props.children;
+  }
+}
 
 const featured = [events[0], events[1], events[2], events[3], events[8], events[11]];
 const faqs = [
@@ -202,6 +223,29 @@ function App() {
           <section className="hero" id="top" aria-labelledby="hero-heading">
             <div className="hero-media">
               <img className="hero-photo" src="/assets/arcade-night.png" alt="Neon-lit arcade cabinets reflected across the floor, with friends playing in the distance" fetchPriority="high" />
+              <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, zIndex: 1, opacity: 0.75, pointerEvents: 'none' }}>
+                <ErrorBoundary fallback={null}>
+                  <FaultyTerminal
+                    scale={1.5}
+                    gridMul={[2, 1]}
+                    digitSize={1.2}
+                    timeScale={0.5}
+                    pause={false}
+                    scanlineIntensity={0.5}
+                    glitchAmount={1}
+                    flickerAmount={1}
+                    noiseAmp={1}
+                    chromaticAberration={0}
+                    dither={0}
+                    curvature={0.1}
+                    tint="#A7EF9E"
+                    mouseReact
+                    mouseStrength={0.5}
+                    pageLoadAnimation
+                    brightness={0.6}
+                  />
+                </ErrorBoundary>
+              </div>
               <div className="hero-shade" />
               <div className="film-grain" />
             </div>
@@ -254,6 +298,28 @@ function App() {
           </section>
 
           <section className="about section-pad" id="about" aria-labelledby="about-heading">
+            <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+              <ErrorBoundary fallback={null}>
+                <GridScan
+                  sensitivity={0.55}
+                  lineThickness={1.2}
+                  linesColor="#e536c0"
+                  gridScale={0.12}
+                  scanColor="#FF9FFC"
+                  scanOpacity={0.85}
+                  enablePost
+                  bloomIntensity={1.0}
+                  chromaticAberration={0.002}
+                  noiseIntensity={0.01}
+                  lineJitter={0.1}
+                  scanGlow={0.8}
+                  scanSoftness={2}
+                  enableWebcam={false}
+                  showPreview={false}
+                />
+              </ErrorBoundary>
+            </div>
+
             <div className="section-label">
               <span>01 / WHO WE ARE</span>
               <span>DRIVING AI EXCELLENCE & COLLABORATION</span>
@@ -265,7 +331,7 @@ function App() {
                 <span>AISAC & CSI STUDENT CHAPTER</span>
               </div>
               <h2 id="about-heading" className="about-title">
-                PIONEERING <span className="pink">ARTIFICIAL INTELLIGENCE</span><br />
+                PIONEERING <span className="ai-gradient">ARTIFICIAL INTELLIGENCE</span><br />
                 FOR TOMORROW'S LEADERS.
               </h2>
               <p className="about-subtitle">
@@ -305,7 +371,7 @@ function App() {
                   <span className="card-tag"><Target size={13} /> OUR MISSION</span>
                 </div>
                 <div className="card-icon-header">
-                  <Target size={32} className="card-feature-icon pink" />
+                  <Target size={32} className="card-feature-icon cyan" />
                   <h3 className="card-title">Bridge Theory & Real-World AI</h3>
                 </div>
                 <p className="card-body">
@@ -317,7 +383,7 @@ function App() {
                   <span>#NeuralNets</span>
                 </div>
                 <div className="card-footer-accent">
-                  <span className="accent-dot pink" />
+                  <span className="accent-dot cyan" />
                   <span>WORKSHOPS · HACKATHONS · ML MODULES</span>
                 </div>
               </div>
@@ -329,7 +395,7 @@ function App() {
                   <span className="card-tag"><Rocket size={13} /> OUR VISION</span>
                 </div>
                 <div className="card-icon-header">
-                  <Rocket size={32} className="card-feature-icon cyan" />
+                  <Rocket size={32} className="card-feature-icon violet" />
                   <h3 className="card-title">Future-Ready Tech Leaders</h3>
                 </div>
                 <p className="card-body">
@@ -341,7 +407,7 @@ function App() {
                   <span>#Innovation</span>
                 </div>
                 <div className="card-footer-accent">
-                  <span className="accent-dot cyan" />
+                  <span className="accent-dot violet" />
                   <span>ETHICAL AI · INNOVATION · LEADERSHIP</span>
                 </div>
               </div>
@@ -438,7 +504,20 @@ function App() {
               <span>THE REAL HIGH SCORE?</span>
               <span>THE PEOPLE YOU MEET.</span>
             </div>
-            <div className="interlude-text">Don’t just be a spectator—be part of the action!</div>
+            <div className="interlude-marquee-track">
+              <div className="interlude-marquee-group">
+                <span className="interlude-word">Don’t just be a spectator—be part of the action!</span>
+                <span className="interlude-star">✦</span>
+                <span className="interlude-word">Don’t just be a spectator—be part of the action!</span>
+                <span className="interlude-star">✦</span>
+              </div>
+              <div className="interlude-marquee-group" aria-hidden="true">
+                <span className="interlude-word">Don’t just be a spectator—be part of the action!</span>
+                <span className="interlude-star">✦</span>
+                <span className="interlude-word">Don’t just be a spectator—be part of the action!</span>
+                <span className="interlude-star">✦</span>
+              </div>
+            </div>
           </section>
 
           {/* Integrated Animated Team Section */}
@@ -679,4 +758,8 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(
+  <ErrorBoundary fallback={<div style={{ padding: '60px', color: '#fff', textAlign: 'center', background: '#141513', minHeight: '100vh' }}><h2>AISAC Website</h2><p>Application refreshed. Please reload page.</p></div>}>
+    <App />
+  </ErrorBoundary>
+);

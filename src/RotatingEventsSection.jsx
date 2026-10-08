@@ -4,14 +4,13 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { events } from './events';
 import Poster from './Poster';
-import ScrollingEventsMarquee from './ScrollingEventsMarquee';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function RotatingEventsSection({ onSelectEvent }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [isAutoPlay, setIsAutoPlay] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   const sectionRef = useRef(null);
@@ -26,83 +25,83 @@ export default function RotatingEventsSection({ onSelectEvent }) {
 
   const totalEvents = filteredEvents.length;
 
+  const updateWheelPosition = (targetIndex, animate = true) => {
+    if (totalEvents === 0) return;
+    const screenWidth = window.innerWidth;
+    const isMobile = screenWidth < 768;
+    const radiusX = isMobile ? Math.min(screenWidth * 0.38, 280) : Math.min(screenWidth * 0.44, 480);
+    const radiusZ = isMobile ? 220 : 340;
+
+    cardRefs.current.forEach((card, idx) => {
+      if (!card) return;
+
+      // Relative offset from current active card
+      let offset = idx - targetIndex;
+      while (offset > totalEvents / 2) offset -= totalEvents;
+      while (offset < -totalEvents / 2) offset += totalEvents;
+
+      // Calculate angle: active card (offset = 0) has normAngle = 0 -> x = 0 (CENTERED IN MIDDLE)
+      const normAngle = offset * 36;
+      const rad = (normAngle * Math.PI) / 180;
+      const cosVal = Math.cos(rad);
+
+      const x = Math.sin(rad) * radiusX;
+      const y = -20;
+      const z = cosVal * radiusZ - radiusZ;
+
+      const rotateY = normAngle * 0.5;
+      const scale = isMobile ? (0.8 + 0.2 * cosVal) : (0.75 + 0.25 * cosVal);
+      const opacity = Math.abs(offset) > 3 ? 0 : (cosVal > -0.3 ? Math.pow((cosVal + 0.3) / 1.3, 0.6) : 0);
+      const zIndex = 1000 - Math.round(Math.abs(offset) * 20);
+
+      const targetProps = {
+        x,
+        y,
+        z,
+        rotateY,
+        scale,
+        opacity,
+        zIndex,
+        pointerEvents: offset === 0 ? 'auto' : (Math.abs(offset) === 1 ? 'auto' : 'none')
+      };
+
+      if (animate) {
+        gsap.to(card, {
+          ...targetProps,
+          duration: 0.5,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      } else {
+        gsap.set(card, targetProps);
+      }
+    });
+  };
+
   useLayoutEffect(() => {
     const section = sectionRef.current;
     const wheel = wheelRef.current;
     if (!section || !wheel || totalEvents === 0) return;
 
     const ctx = gsap.context(() => {
-      const rotObj = rotObjRef.current;
-      const anglePerItem = 360 / totalEvents;
+      // Initial wheel render with active card dead center
+      updateWheelPosition(activeIndex, false);
 
-      const updateWheel = () => {
-        const currentRot = rotObj.angle;
-        // Determine closest item to front (0 deg)
-        const normalizedAngle = ((currentRot % 360) + 360) % 360;
-        const frontIdx = Math.round((360 - normalizedAngle) / anglePerItem) % totalEvents;
-        setActiveIndex((frontIdx + totalEvents) % totalEvents);
-
-        const screenWidth = window.innerWidth;
-        const isMobile = screenWidth < 768;
-        // Wide horizontal orbital radius to give generous spacing between cards across screen
-        const radiusX = isMobile ? Math.min(screenWidth * 0.42, 340) : Math.min(screenWidth * 0.48, 820);
-        const radiusZ = isMobile ? 220 : 380;
-
-        cardRefs.current.forEach((card, idx) => {
-          if (!card) return;
-          const rawAngle = (idx * anglePerItem + currentRot) % 360;
-          let normAngle = (rawAngle + 180) % 360 - 180;
-          if (normAngle < -180) normAngle += 360;
-
-          const rad = (normAngle * Math.PI) / 180;
-          const cosVal = Math.cos(rad);
-
-          // 3D Orbital Coordinates - starting slightly up (y: -25)
-          const x = Math.sin(rad) * radiusX;
-          const y = -25;
-          const z = cosVal * radiusZ - radiusZ;
-
-          // Gentle 3D rotation so side cards face comfortably towards user
-          const rotateY = normAngle * 0.55;
-
-          // Depth scaling and opacity
-          const scale = isMobile ? (0.78 + 0.22 * cosVal) : (0.72 + 0.32 * cosVal);
-          const opacity = cosVal > -0.4 ? Math.pow((cosVal + 0.4) / 1.4, 0.5) : 0;
-          const zIndex = Math.round(z + 1000);
-
-          gsap.set(card, {
-            x: x,
-            y: y,
-            z: z,
-            rotateY: rotateY,
-            scale: scale,
-            opacity: opacity,
-            zIndex: zIndex,
-            pointerEvents: opacity > 0.4 ? 'auto' : 'none'
-          });
-        });
-      };
-
-      // Initial layout setup
-      updateWheel();
-
-      /* TEMPORARILY COMMENTED OUT SCROLL-DRIVEN ROTATION ANIMATION WHILE SCROLLING AS REQUESTED
       const st = ScrollTrigger.create({
         trigger: section,
-        start: 'top top',
-        end: () => `+=${totalEvents * 300}`,
+        start: 'top 20px',
+        end: () => `+=${Math.max(window.innerHeight * 0.9, totalEvents * 140)}`,
         pin: true,
-        scrub: 0.8,
+        scrub: 0.5,
         invalidateOnRefresh: true,
         anticipatePin: 1,
         onUpdate: (self) => {
-          rotObj.angle = self.progress * 360 * 1.5;
-          updateWheel();
+          const targetIdx = Math.min(totalEvents - 1, Math.max(0, Math.floor(self.progress * totalEvents)));
+          setActiveIndex(targetIdx);
         }
       });
 
       return () => st.kill();
-      */
     }, sectionRef);
 
     const timer = setTimeout(() => {
@@ -115,54 +114,17 @@ export default function RotatingEventsSection({ onSelectEvent }) {
     };
   }, [filteredEvents, totalEvents]);
 
+  // Update wheel whenever activeIndex or category changes
+  useEffect(() => {
+    updateWheelPosition(activeIndex, true);
+  }, [activeIndex, activeCategory]);
+
   const rotateStep = (direction) => {
-    const anglePerItem = 360 / totalEvents;
-    const targetAngle = rotObjRef.current.angle + (direction === 'next' ? -anglePerItem : anglePerItem);
-
-    gsap.to(rotObjRef.current, {
-      angle: targetAngle,
-      duration: 0.6,
-      ease: 'power2.out',
-      onUpdate: () => {
-        const currentRot = rotObjRef.current.angle;
-        const normalizedAngle = ((currentRot % 360) + 360) % 360;
-        const frontIdx = Math.round((360 - normalizedAngle) / anglePerItem) % totalEvents;
-        setActiveIndex((frontIdx + totalEvents) % totalEvents);
-
-        const screenWidth = window.innerWidth;
-        const isMobile = screenWidth < 768;
-        const radiusX = isMobile ? Math.min(screenWidth * 0.42, 340) : Math.min(screenWidth * 0.48, 820);
-        const radiusZ = isMobile ? 220 : 380;
-
-        cardRefs.current.forEach((card, idx) => {
-          if (!card) return;
-          const rawAngle = (idx * anglePerItem + currentRot) % 360;
-          let normAngle = (rawAngle + 180) % 360 - 180;
-          if (normAngle < -180) normAngle += 360;
-
-          const rad = (normAngle * Math.PI) / 180;
-          const cosVal = Math.cos(rad);
-
-          const x = Math.sin(rad) * radiusX;
-          const y = -25;
-          const z = cosVal * radiusZ - radiusZ;
-          const rotateY = normAngle * 0.55;
-          const scale = isMobile ? (0.78 + 0.22 * cosVal) : (0.72 + 0.32 * cosVal);
-          const opacity = cosVal > -0.4 ? Math.pow((cosVal + 0.4) / 1.4, 0.5) : 0;
-          const zIndex = Math.round(z + 1000);
-
-          gsap.set(card, {
-            x: x,
-            y: y,
-            z: z,
-            rotateY: rotateY,
-            scale: scale,
-            opacity: opacity,
-            zIndex: zIndex,
-            pointerEvents: opacity > 0.4 ? 'auto' : 'none'
-          });
-        });
-      }
+    setActiveIndex((prev) => {
+      const nextIdx = direction === 'next'
+        ? (prev + 1) % totalEvents
+        : (prev - 1 + totalEvents) % totalEvents;
+      return nextIdx;
     });
   };
 
@@ -182,21 +144,15 @@ export default function RotatingEventsSection({ onSelectEvent }) {
     return () => observer.disconnect();
   }, []);
 
-  // Auto-rotate continuous animation starts IMMEDIATELY when section becomes visible
+  // Optional auto-rotate continuous animation when toggled on by user
   useEffect(() => {
     if (!isAutoPlay || !isVisible || totalEvents === 0) return;
-
-    // Trigger smooth immediate rotation step as soon as section becomes visible
-    const initialDelay = setTimeout(() => {
-      rotateStep('next');
-    }, 300);
 
     const timer = setInterval(() => {
       rotateStep('next');
     }, 4000);
 
     return () => {
-      clearTimeout(initialDelay);
       clearInterval(timer);
     };
   }, [isAutoPlay, isVisible, totalEvents]);
@@ -341,9 +297,6 @@ export default function RotatingEventsSection({ onSelectEvent }) {
           </div>
         </div>
       )}
-
-      {/* CONTINUOUS SCROLLING ANIMATION OF EVENTS BELOW CARDS */}
-      <ScrollingEventsMarquee onSelectEvent={onSelectEvent} title="CONTINUOUS LIVE EVENTS STREAM" />
     </section>
   );
 }
