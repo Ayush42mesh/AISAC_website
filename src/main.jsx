@@ -10,24 +10,29 @@ import EventsPage from './EventsPage';
 import ContactPage from './ContactPage';
 import RotatingEventsSection from './RotatingEventsSection';
 import ScrollingEventsMarquee from './ScrollingEventsMarquee';
-import FaultyTerminal from './FaultyTerminal';
 import GridScan from './GridScan';
 import './style.css';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
   }
   componentDidCatch(error, errorInfo) {
     console.warn("React ErrorBoundary caught runtime component error:", error, errorInfo);
   }
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || null;
+      if (this.props.fallback) return this.props.fallback;
+      return (
+        <div style={{ position: 'absolute', inset: 0, color: '#ff6b6b', background: 'rgba(50,0,0,0.85)', padding: '20px', zIndex: 100, fontSize: '13px', fontFamily: 'monospace', overflow: 'auto' }}>
+          <strong>GridScan Component Crash:</strong>
+          <pre>{String(this.state.error?.stack || this.state.error)}</pre>
+        </div>
+      );
     }
     return this.props.children;
   }
@@ -54,6 +59,7 @@ const staffMembers = [
     name: 'Prof. Rohan Shetty',
     role: 'Staff Co-ordinator',
     image: '/assets/prof-rohan.png',
+    imagePos: 'center 20%',
     bio: 'Mentoring project teams, technical workshops, hackathons, and fostering student industry interaction.'
   },
   {
@@ -223,29 +229,6 @@ function App() {
           <section className="hero" id="top" aria-labelledby="hero-heading">
             <div className="hero-media">
               <img className="hero-photo" src="/assets/arcade-night.png" alt="Neon-lit arcade cabinets reflected across the floor, with friends playing in the distance" fetchPriority="high" />
-              <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, zIndex: 1, opacity: 0.75, pointerEvents: 'none' }}>
-                <ErrorBoundary fallback={null}>
-                  <FaultyTerminal
-                    scale={1.5}
-                    gridMul={[2, 1]}
-                    digitSize={1.2}
-                    timeScale={0.5}
-                    pause={false}
-                    scanlineIntensity={0.5}
-                    glitchAmount={1}
-                    flickerAmount={1}
-                    noiseAmp={1}
-                    chromaticAberration={0}
-                    dither={0}
-                    curvature={0.1}
-                    tint="#A7EF9E"
-                    mouseReact
-                    mouseStrength={0.5}
-                    pageLoadAnimation
-                    brightness={0.6}
-                  />
-                </ErrorBoundary>
-              </div>
               <div className="hero-shade" />
               <div className="film-grain" />
             </div>
@@ -300,14 +283,14 @@ function App() {
           <section className="about section-pad" id="about" aria-labelledby="about-heading" style={{ position: 'relative', overflow: 'hidden', background: '#0d0c16' }}>
             {/* Background layer */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-              <ErrorBoundary fallback={null}>
+              <ErrorBoundary>
                 <GridScan
                   sensitivity={0.55}
                   lineThickness={1}
-                  linesColor="#2F293A"
+                  linesColor="#a855f7"
                   gridScale={0.1}
                   scanColor="#FF9FFC"
-                  scanOpacity={0.4}
+                  scanOpacity={0.8}
                   enablePost
                   bloomIntensity={0.6}
                   chromaticAberration={0.002}
@@ -476,7 +459,12 @@ function App() {
                   {staffMembers.map(staff => (
                     <div className="staff-card" key={staff.id} data-reveal>
                       <div className="staff-photo-wrap">
-                        <img src={staff.image} alt={staff.name} className="staff-photo" />
+                        <img
+                          src={staff.image}
+                          alt={staff.name}
+                          className="staff-photo"
+                          style={staff.imagePos ? { objectPosition: staff.imagePos } : undefined}
+                        />
                         <span className="staff-badge">{staff.role}</span>
                       </div>
                       <div className="staff-info">

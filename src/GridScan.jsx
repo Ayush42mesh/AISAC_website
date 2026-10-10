@@ -1,6 +1,6 @@
 import * as faceapi from 'face-api.js';
 import { BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import './GridScan.css';
 
@@ -66,8 +66,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     vec3 color = vec3(0.0);
   float minT = 1e20;
   float gridScale = max(1e-5, uGridScale);
-    float fadeStrength = 2.0;
-    vec2 gridUV = vec2(0.0);
+  float fadeStrength = 0.4;
+  vec2 gridUV = vec2(0.0);
 
   float hitIsY = 1.0;
     for (int i = 0; i < 4; i++)
@@ -105,7 +105,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
   float ay = min(fy, 1.0 - fy);
   float wx = fwidth(gridUV.x);
   float wy = fwidth(gridUV.y);
-  float halfPx = max(0.0, uLineThickness) * 0.5;
+  float halfPx = max(0.5, uLineThickness) * 1.5;
 
   float tx = halfPx * wx;
   float ty = halfPx * wy;
@@ -844,7 +844,9 @@ export default GridScan;
 
 function srgbColor(hex) {
   const c = new THREE.Color(hex);
-  return c.convertSRGBToLinear();
+  if (typeof c.toLinear === 'function') return c.toLinear();
+  if (typeof c.convertSRGBToLinear === 'function') return c.convertSRGBToLinear();
+  return c;
 }
 
 function smoothDampVec2(current, target, currentVelocity, smoothTime, maxSpeed, deltaTime) {
