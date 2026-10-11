@@ -42,5 +42,5 @@ export const members = [
   { id: 'm-1', name: 'Atharv Patil', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #f667c5, #85e3ed)', initials: 'AP' },
   { id: 'm-16', name: 'Sanika Kathore', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #85e3ed, #f667c5)', initials: 'SK' },
   { id: 'm-17', name: 'Dhiraj Balotia', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #5de8ef, #d4f77c)', initials: 'DB' },
-  { id: 'm-23', name: 'Akhilesh Shitole', role: 'Committee Member', year: '2nd Year', avatarColor: 'linear-gradient(135deg, #5de8ef, #fa54bd)', initials: 'AS' }
+
 ];
