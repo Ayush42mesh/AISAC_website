@@ -55,36 +55,127 @@ function makeModel(type, color) {
     const base = group.rotation.clone(); return { group, base };
 }
 function disposeScene(scene) { const geometries = new Set(), materials = new Set(), textures = new Set(); scene.traverse(obj => { if (obj.geometry) geometries.add(obj.geometry); if (obj.material) { for (const m of Array.isArray(obj.material) ? obj.material : [obj.material]) { materials.add(m); if (m.map) textures.add(m.map); } } }); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); textures.forEach(t => t.dispose()); }
+function renderFallbackArtwork(host, type, color, hero) {
+    if (!host) return;
+    if (type === 'cabinet') {
+        host.innerHTML = `
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+            <svg viewBox="0 0 200 270" style="width:88%;height:88%;filter:drop-shadow(0 0 35px rgba(246,103,197,0.55)) drop-shadow(0 0 16px rgba(133,227,237,0.45));">
+              <defs>
+                <linearGradient id="fbCab" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#1e1836"/>
+                  <stop offset="50%" stop-color="#2b1b4a"/>
+                  <stop offset="100%" stop-color="#120f24"/>
+                </linearGradient>
+                <linearGradient id="fbScr" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#1a143b"/>
+                  <stop offset="100%" stop-color="#0d0a20"/>
+                </linearGradient>
+              </defs>
+              <path d="M 48 18 L 152 18 L 164 56 L 174 125 L 156 175 L 156 252 L 44 252 L 44 175 L 26 125 L 36 56 Z" fill="url(#fbCab)" stroke="#f667c5" stroke-width="2.5"/>
+              <rect x="50" y="24" width="100" height="28" rx="4" fill="#0d091a" stroke="#85e3ed" stroke-width="1.8"/>
+              <text x="100" y="43" fill="#d4f77c" font-size="13" font-weight="900" text-anchor="middle" letter-spacing="2.5" font-family="'Barlow Condensed', Impact, sans-serif">ARCADE</text>
+              <polygon points="52,60 148,60 156,128 44,128" fill="#0a0816" stroke="#f667c5" stroke-width="1.8"/>
+              <polygon points="58,66 142,66 149,122 51,122" fill="url(#fbScr)"/>
+              <text x="100" y="94" fill="#85e3ed" font-size="19" font-weight="900" text-anchor="middle" letter-spacing="3" font-family="'Barlow Condensed', Impact, sans-serif">AISAC</text>
+              <text x="100" y="110" fill="#f667c5" font-size="8.5" font-weight="700" text-anchor="middle" letter-spacing="1.2">LEVEL 2026</text>
+              <polygon points="42,132 158,132 166,162 34,162" fill="#181330" stroke="#85e3ed" stroke-width="1.8"/>
+              <circle cx="76" cy="147" r="5" fill="#f667c5"/>
+              <line x1="76" y1="147" x2="76" y2="155" stroke="#edebe2" stroke-width="2"/>
+              <circle cx="112" cy="144" r="4" fill="#d4f77c"/>
+              <circle cx="126" cy="150" r="4" fill="#85e3ed"/>
+              <circle cx="140" cy="144" r="4" fill="#f667c5"/>
+              <rect x="74" y="180" width="52" height="62" rx="4" fill="#0a0815" stroke="#ffffff33" stroke-width="1.5"/>
+              <rect x="83" y="192" width="12" height="20" rx="1.5" fill="#131024" stroke="#d4f77c" stroke-width="1"/>
+              <rect x="105" y="192" width="12" height="20" rx="1.5" fill="#131024" stroke="#d4f77c" stroke-width="1"/>
+              <line x1="89" y1="196" x2="89" y2="206" stroke="#d4f77c" stroke-width="1.5"/>
+              <line x1="111" y1="196" x2="111" y2="206" stroke="#d4f77c" stroke-width="1.5"/>
+            </svg>
+          </div>
+        `;
+    }
+    host.dataset.ready = 'true';
+}
+
 export default function ArcadeObject({ type = 'pacman', color = '#d4f77c', hero = false }) {
     const hostRef = useRef();
     useEffect(() => {
         const host = hostRef.current; let renderer, scene, camera, model, environment, frame = 0, deadline = 0, visible = false, disposed = false, lastSize = '', pointer = { x: 0, y: 0 };
         const reduced = matchMedia('(prefers-reduced-motion: reduce)');
         function initialize() {
-            if (renderer || disposed) return; try {
-                renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' }); renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6)); renderer.setClearColor(0x000000, 0); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = hero ? 1.1 : 1.0; host.appendChild(renderer.domElement);
-                scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(hero ? 33 : 36, 1, .1, 50); camera.position.set(0, hero ? .5 : .15, hero ? 10.5 : 7.7); camera.lookAt(0, 0, 0);
-                const pmrem = new THREE.PMREMGenerator(renderer), room = new RoomEnvironment(); environment = pmrem.fromScene(room, .04); scene.environment = environment.texture; pmrem.dispose(); room.dispose();
-                scene.add(new THREE.HemisphereLight(0xffffff, 0x292342, 1.2)); const key = new THREE.DirectionalLight(0xffffff, 2.5); key.position.set(-3, 5, 5); scene.add(key); const rim = new THREE.DirectionalLight(hero ? 0xf667c5 : 0xffffff, hero ? 4 : 1.5); rim.position.set(3, 2, -3); scene.add(rim); const cyan = new THREE.PointLight(0x85e3ed, hero ? 18 : 6); cyan.position.set(-3, 0, 3); scene.add(cyan);
-                model = makeModel(type, color); scene.add(model.group); host.dataset.ready = 'true';
-            } catch (error) { console.warn('3D unavailable; displaying artwork fallback.', error); destroy(); }
+            if (renderer || disposed) return;
+            try {
+                try {
+                    renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'default' });
+                } catch {
+                    try {
+                        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'low-power' });
+                    } catch {
+                        renderer = new THREE.WebGLRenderer({ alpha: true });
+                    }
+                }
+                renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));
+                renderer.setClearColor(0x000000, 0);
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                renderer.toneMappingExposure = hero ? 1.1 : 1.0;
+                host.appendChild(renderer.domElement);
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(hero ? 33 : 36, 1, .1, 50);
+                camera.position.set(0, hero ? .5 : .15, hero ? 10.5 : 7.7);
+                camera.lookAt(0, 0, 0);
+                try {
+                    const pmrem = new THREE.PMREMGenerator(renderer), room = new RoomEnvironment();
+                    environment = pmrem.fromScene(room, .04);
+                    scene.environment = environment.texture;
+                    pmrem.dispose();
+                    room.dispose();
+                } catch {
+                    // RoomEnvironment optional
+                }
+                scene.add(new THREE.HemisphereLight(0xffffff, 0x292342, 1.2));
+                const key = new THREE.DirectionalLight(0xffffff, 2.5); key.position.set(-3, 5, 5); scene.add(key);
+                const rim = new THREE.DirectionalLight(hero ? 0xf667c5 : 0xffffff, hero ? 4 : 1.5); rim.position.set(3, 2, -3); scene.add(rim);
+                const cyan = new THREE.PointLight(0x85e3ed, hero ? 18 : 6); cyan.position.set(-3, 0, 3); scene.add(cyan);
+                model = makeModel(type, color);
+                scene.add(model.group);
+                host.dataset.ready = 'true';
+            } catch (error) {
+                console.warn('3D WebGL unavailable; rendering artwork fallback.', error);
+                renderFallbackArtwork(host, type, color, hero);
+            }
         }
         function draw() {
-            frame = 0; if (!visible || !renderer || disposed) return; const r = host.getBoundingClientRect(); if (r.width <= 0 || r.height <= 0) return; const size = `${Math.round(r.width)}x${Math.round(r.height)}`; if (size !== lastSize) { lastSize = size; renderer.setSize(r.width, r.height); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); }
+            frame = 0; if (!visible || !renderer || disposed) return;
+            const r = host.getBoundingClientRect();
+            if (r.width <= 0 || r.height <= 0) {
+                if (performance.now() < deadline) frame = requestAnimationFrame(draw);
+                return;
+            }
+            const size = `${Math.round(r.width)}x${Math.round(r.height)}`;
+            if (size !== lastSize) {
+                lastSize = size;
+                renderer.setSize(r.width, r.height);
+                camera.aspect = r.width / r.height;
+                camera.updateProjectionMatrix();
+            }
             // Normal scrolling rotates the actual geometry; pointer input adds a subtle look-around.
             const section = host.closest(hero ? '.hero' : '.lineup-shell') || host.closest('dialog') || host;
-            const sectionRect = section.getBoundingClientRect(); const scrollPhase = hero ? THREE.MathUtils.clamp(-sectionRect.top / sectionRect.height, 0, 1) : THREE.MathUtils.clamp((innerWidth / 2 - r.left - r.width / 2) / innerWidth, -1, 1);
+            const sectionRect = section.getBoundingClientRect();
+            const scrollPhase = hero ? THREE.MathUtils.clamp(-sectionRect.top / (sectionRect.height || 1), 0, 1) : THREE.MathUtils.clamp((innerWidth / 2 - r.left - r.width / 2) / innerWidth, -1, 1);
             const tilt = reduced.matches ? 0 : scrollPhase;
-            model.group.rotation.set(model.base.x + (!reduced.matches ? pointer.y * .13 : 0), model.base.y + tilt * (hero ? 1.3 : .7) + (!reduced.matches ? pointer.x * .28 : 0), model.base.z + (hero ? tilt * .07 : 0));
-            model.group.position.y = hero ? -tilt * .15 : 0; renderer.render(scene, camera); if (performance.now() < deadline) frame = requestAnimationFrame(draw);
+            if (model && model.group) {
+                model.group.rotation.set(model.base.x + (!reduced.matches ? pointer.y * .13 : 0), model.base.y + tilt * (hero ? 1.3 : .7) + (!reduced.matches ? pointer.x * .28 : 0), model.base.z + (hero ? tilt * .07 : 0));
+                model.group.position.y = hero ? -tilt * .15 : 0;
+            }
+            renderer.render(scene, camera);
+            if (performance.now() < deadline) frame = requestAnimationFrame(draw);
         }
-        function request() { if (!visible || disposed) return; deadline = performance.now() + (reduced.matches ? 0 : 1100); if (!frame) frame = requestAnimationFrame(draw); }
+        function request() { if (!visible || disposed) return; deadline = performance.now() + (reduced.matches ? 0 : 1500); if (!frame) frame = requestAnimationFrame(draw); }
         function destroy() { cancelAnimationFrame(frame); frame = 0; if (scene) disposeScene(scene); environment?.dispose(); renderer?.dispose(); renderer?.forceContextLoss(); renderer = scene = model = environment = null; lastSize = ''; host.removeAttribute('data-ready'); host.replaceChildren(); }
         const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible) { initialize(); request(); } else destroy(); }, { rootMargin: '60px' }); observer.observe(host);
         const resize = new ResizeObserver(request); resize.observe(host);
         const pointerMove = e => { if (reduced.matches) return; const r = host.getBoundingClientRect(); if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) { pointer.x = (e.clientX - r.left) / r.width - .5; pointer.y = (e.clientY - r.top) / r.height - .5; request(); } else if (pointer.x || pointer.y) { pointer = { x: 0, y: 0 }; request(); } };
         window.addEventListener('scroll', request, { capture: true, passive: true }); window.addEventListener('pointermove', pointerMove, { passive: true }); window.addEventListener('resize', request); reduced.addEventListener('change', request);
-        // IntersectionObserver may run before fonts and pinned sections finish their layout.
         document.fonts.ready.then(() => { if (!disposed) request(); });
         return () => { disposed = true; observer.disconnect(); resize.disconnect(); window.removeEventListener('scroll', request, true); window.removeEventListener('pointermove', pointerMove); window.removeEventListener('resize', request); reduced.removeEventListener('change', request); destroy(); };
     }, [type, color, hero]);

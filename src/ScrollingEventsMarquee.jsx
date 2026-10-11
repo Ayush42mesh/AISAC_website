@@ -23,17 +23,17 @@ export default function ScrollingEventsMarquee({ onSelectEvent, title = 'CONTINU
   const feOrientationEvent = {
     id: 'fe-orientation',
     title: 'FE Orientation 2026',
-    subtheme: 'CONTINUOUS LIVE EVENT',
+    subtheme: 'FE INDUCTION PROGRAM',
     description: 'Welcoming First-Year Engineering students into the world of AI, tech innovation, coding workshops, and campus community leadership.',
-    category: 'Live Event',
-    date: 'October 2026',
+    category: 'Past Event',
+    date: '8th October, 2026',
     time: '10:00 AM - 4:00 PM',
     venue: 'Main Auditorium & AI Hub',
     squadLimit: 'FE Students',
-    entryFee: 'Open Access',
+    entryFee: 'Conducted',
     prizePool: 'Starter Kits & Certificates',
     contacts: 'AISAC Student Mentors',
-    statusLabel: 'LIVE CONTINUOUS EVENT'
+    statusLabel: 'PAST EVENT · 8TH OCT'
   };
 
   // Repeat FE Orientation event across all marquee boxes

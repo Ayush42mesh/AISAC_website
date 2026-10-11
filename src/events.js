@@ -114,16 +114,16 @@ export const events = [
   {
     id: 7,
     title: 'FE Orientation',
-    subtheme: 'CONTINUOUS LIVE EVENT',
+    subtheme: 'FE INDUCTION PROGRAM',
     description: 'Welcoming First-Year Engineering students into the world of AI, tech innovation, coding workshops, and campus community leadership.',
     iconType: 'coin',
     accentColor: '#5de8ef',
-    category: 'Live Event',
-    date: 'October 2026',
+    category: 'Past Event',
+    date: '8th October, 2026',
     time: '10:00 AM - 4:00 PM',
     venue: 'Main Auditorium & AI Hub',
     squadLimit: 'FE Students',
-    entryFee: 'Open Access',
+    entryFee: 'Conducted',
     prizePool: 'Starter Kits & Certificates',
     contacts: 'AISAC Student Mentors'
   }

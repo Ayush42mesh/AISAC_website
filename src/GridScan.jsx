@@ -247,7 +247,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
   float lineVis = lineMask;
   vec3 gridCol = uLinesColor * lineVis * fade;
-  vec3 scanCol = uScanColor * combinedPulse;
+  vec3 scanCol = uScanColor * (combinedPulse + combinedAura * 1.5);
   vec3 scanAura = uScanColor * combinedAura;
 
     color = gridCol + scanCol + scanAura;
@@ -255,7 +255,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
   float n = fract(sin(dot(gl_FragCoord.xy + vec2(iTime * 123.4), vec2(12.9898,78.233))) * 43758.5453123);
   color += (n - 0.5) * uNoise;
   color = clamp(color, 0.0, 1.0);
-  float alpha = clamp(max(lineVis, combinedPulse), 0.0, 1.0);
+  float alpha = clamp(max(lineVis * fade, (combinedPulse + combinedAura * 0.75) * uScanOpacity), 0.0, 1.0);
   float gx = 1.0 - smoothstep(tx * 2.0, tx * 2.0 + aax * 2.0, ax);
   float gy = 1.0 - smoothstep(ty * 2.0, ty * 2.0 + aay * 2.0, ay);
   float halo = max(gx, gy) * fade;
@@ -292,7 +292,7 @@ export const GridScan = ({
   lineStyle = 'solid',
   lineJitter = 0.1,
   scanDirection = 'pingpong',
-  enablePost = true,
+  enablePost = false,
   bloomIntensity = 0,
   bloomThreshold = 0,
   bloomSmoothing = 0,
@@ -370,15 +370,21 @@ export const GridScan = ({
     const el = containerRef.current;
     if (!el) return;
     let leaveTimer = null;
+    let cachedRect = el.getBoundingClientRect();
+    const updateRect = () => {
+      if (el) cachedRect = el.getBoundingClientRect();
+    };
+    window.addEventListener('resize', updateRect, { passive: true });
+    window.addEventListener('scroll', updateRect, { passive: true });
+
     const onMove = e => {
       if (uiFaceActive) return;
       if (leaveTimer) {
         clearTimeout(leaveTimer);
         leaveTimer = null;
       }
-      const rect = el.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      const nx = ((e.clientX - cachedRect.left) / (cachedRect.width || 1)) * 2 - 1;
+      const ny = -(((e.clientY - cachedRect.top) / (cachedRect.height || 1)) * 2 - 1);
       lookTarget.current.set(nx, ny);
     };
     const onClick = async () => {
@@ -398,6 +404,7 @@ export const GridScan = ({
       }
     };
     const onEnter = () => {
+      updateRect();
       if (leaveTimer) {
         clearTimeout(leaveTimer);
         leaveTimer = null;
@@ -415,12 +422,14 @@ export const GridScan = ({
         Math.max(0, snapBackDelay || 0)
       );
     };
-    window.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseenter', onEnter);
+    window.addEventListener('mousemove', onMove, { passive: true });
+    el.addEventListener('mouseenter', onEnter, { passive: true });
     if (scanOnClick) el.addEventListener('click', onClick);
-    el.addEventListener('mouseleave', onLeave);
+    el.addEventListener('mouseleave', onLeave, { passive: true });
     return () => {
       window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('resize', updateRect);
+      window.removeEventListener('scroll', updateRect);
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mouseleave', onLeave);
       if (scanOnClick) el.removeEventListener('click', onClick);
@@ -439,7 +448,7 @@ export const GridScan = ({
       return;
     }
     rendererRef.current = renderer;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping;
@@ -535,8 +544,10 @@ export const GridScan = ({
     ro.observe(container);
     onResize();
 
+    let isIntersecting = false;
     let last = performance.now();
-    const tick = () => {
+
+    const renderFrame = () => {
       const now = performance.now();
       const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
       last = now;
@@ -579,11 +590,38 @@ export const GridScan = ({
       } else {
         renderer.render(scene, camera);
       }
+    };
+
+    const tick = () => {
+      if (!isIntersecting) {
+        rafRef.current = null;
+        return;
+      }
+      renderFrame();
       rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(tick);
+
+    const io = new IntersectionObserver(
+      entries => {
+        isIntersecting = entries[0]?.isIntersecting || false;
+        if (isIntersecting) {
+          if (!rafRef.current) {
+            last = performance.now();
+            rafRef.current = requestAnimationFrame(tick);
+          }
+        } else {
+          if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+          }
+        }
+      },
+      { rootMargin: '100px' }
+    );
+    io.observe(container);
 
     return () => {
+      io.disconnect();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.removeEventListener('resize', onResize);
       ro.disconnect();
@@ -699,6 +737,7 @@ export const GridScan = ({
   }, [enableGyro, uiFaceActive]);
 
   useEffect(() => {
+    if (!enableWebcam) return;
     let canceled = false;
     const load = async () => {
       try {
@@ -715,7 +754,7 @@ export const GridScan = ({
     return () => {
       canceled = true;
     };
-  }, [modelsPath]);
+  }, [enableWebcam, modelsPath]);
 
   useEffect(() => {
     let stop = false;

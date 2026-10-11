@@ -49,32 +49,35 @@ const faqs = [
 const staffMembers = [
   {
     id: 1,
-    name: 'Prof. Gitanjali Korgaonkar',
-    role: 'Staff Co-ordinator',
-    image: '/assets/prof-gitanjali.png',
-    bio: 'Guiding AISAC student leadership, driving academic excellence, and coordinating student development initiatives.'
+    name: 'Dr. Alam Shaikh',
+    role: 'Principal',
+    image: '/assets/dr-alam.png',
+    imagePos: 'center 15%',
+    bio: 'Visionary educational leader championing technological innovation, academic brilliance, and student leadership.'
   },
   {
     id: 2,
+    name: 'Dr. Mahavir Devmane',
+    role: 'Head of Department',
+    image: '/assets/dr-mahavir.png',
+    imagePos: 'center 20%',
+    bio: 'Leading the AI & Computer Engineering department towards research excellence, innovation, and cutting-edge labs.'
+  },
+  {
+    id: 3,
+    name: 'Prof. Gitanjali Korgaonkar',
+    role: 'Staff Co-ordinator',
+    image: '/assets/prof-gitanjali.png',
+    imagePos: 'center 20%',
+    bio: 'Guiding AISAC student leadership, driving academic excellence, and coordinating student development initiatives.'
+  },
+  {
+    id: 4,
     name: 'Prof. Rohan Shetty',
     role: 'Staff Co-ordinator',
     image: '/assets/prof-rohan.png',
     imagePos: 'center 20%',
     bio: 'Mentoring project teams, technical workshops, hackathons, and fostering student industry interaction.'
-  },
-  {
-    id: 3,
-    name: 'Dr. Mahavir Devmane',
-    role: 'Head of Department',
-    image: '/assets/dr-mahavir.png',
-    bio: 'Leading the AI & Computer Engineering department towards research excellence, innovation, and cutting-edge labs.'
-  },
-  {
-    id: 4,
-    name: 'Dr. Alam Shaikh',
-    role: 'Principal',
-    image: '/assets/dr-alam.png',
-    bio: 'Visionary educational leader championing technological innovation, academic brilliance, and student leadership.'
   }
 ];
 
@@ -214,6 +217,9 @@ function App() {
           <a href="#team" onClick={() => goTo('team')} className={page === 'home' && window.location.hash === '#team' ? 'active-nav' : ''}>TEAM<span></span></a>
           <a href="#events-home" onClick={(e) => { e.preventDefault(); goTo('events'); }}>EVENTS<span></span></a>
           <a href="#contact" onClick={() => goTo('contact')} className={page === 'home' && window.location.hash === '#contact' ? 'active-nav' : ''}>CONTACT<span></span></a>
+          <a className="mobile-nav-cta" href="#events-page" onClick={(e) => { e.preventDefault(); goTo('events'); }}>
+            EXPLORE EVENTS <ArrowUpRight size={17} />
+          </a>
         </nav>
 
         <a className="header-cta" href="#events-page" onClick={(e) => { e.preventDefault(); goTo('events'); }}>
@@ -221,8 +227,16 @@ function App() {
         </a>
 
         <button className="menu-toggle" onClick={() => setMenu(!menu)} aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu}>
-          {menu ? <X /> : <Menu />}
+          {menu ? <X size={22} /> : <Menu size={22} />}
         </button>
+
+        {menu && (
+          <div
+            className="mobile-nav-backdrop"
+            onClick={() => setMenu(false)}
+            aria-hidden="true"
+          />
+        )}
       </header>
 
         <main>
@@ -291,7 +305,7 @@ function App() {
                   gridScale={0.1}
                   scanColor="#FF9FFC"
                   scanOpacity={0.8}
-                  enablePost
+                  enablePost={false}
                   bloomIntensity={0.6}
                   chromaticAberration={0.002}
                   noiseIntensity={0.01}
@@ -332,7 +346,7 @@ function App() {
                     <h3 className="card-title">Vibrant Student AI Community</h3>
                   </div>
                   <p className="card-body">
-                    <strong>AISAC</strong> is a student-driven ecosystem dedicated to advancing AI knowledge, fostering technical creativity, and inspiring real-world innovation across research, software engineering, and outreach.
+                    <strong className="identity-aisac-brand">AISAC</strong> is a student-driven ecosystem dedicated to advancing AI knowledge, fostering technical creativity, and inspiring real-world innovation across research, software engineering, and outreach.
                   </p>
                   <div className="card-pill-tags">
                     <span>#Research</span>
@@ -413,7 +427,8 @@ function App() {
                 <div className="pillar-item">
                   <ShieldCheck size={22} className="pillar-icon cyan" />
                   <div>
-                    <h4>Learn directly from expert professors, industry engineers, and alum leaders.</h4>
+                    <h4>Faculty & Industry Mentorship</h4>
+                    <p>Learn directly from expert professors, industry engineers, and alum leaders.</p>
                   </div>
                 </div>
               </div>

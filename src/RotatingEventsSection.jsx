@@ -1,11 +1,8 @@
 import React, { useState, useRef, useLayoutEffect, useMemo, useEffect } from 'react';
 import { CalendarDays, MapPin, ArrowRight, ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight, Trophy, Compass, Users, Play, Pause } from 'lucide-react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { events } from './events';
 import Poster from './Poster';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function RotatingEventsSection({ onSelectEvent }) {
   const [activeCategory, setActiveCategory] = useState('All');
@@ -17,6 +14,8 @@ export default function RotatingEventsSection({ onSelectEvent }) {
   const wheelRef = useRef(null);
   const cardRefs = useRef([]);
   const rotObjRef = useRef({ angle: 0 });
+  const activeIndexRef = useRef(activeIndex);
+  activeIndexRef.current = activeIndex;
 
   const filteredEvents = useMemo(() => {
     if (activeCategory === 'All') return events;
@@ -29,8 +28,8 @@ export default function RotatingEventsSection({ onSelectEvent }) {
     if (totalEvents === 0) return;
     const screenWidth = window.innerWidth;
     const isMobile = screenWidth < 768;
-    const radiusX = isMobile ? Math.min(screenWidth * 0.38, 280) : Math.min(screenWidth * 0.44, 480);
-    const radiusZ = isMobile ? 220 : 340;
+    const radiusX = isMobile ? Math.max(screenWidth * 0.52, 195) : Math.min(screenWidth * 0.44, 480);
+    const radiusZ = isMobile ? 130 : 340;
 
     cardRefs.current.forEach((card, idx) => {
       if (!card) return;
@@ -41,17 +40,20 @@ export default function RotatingEventsSection({ onSelectEvent }) {
       while (offset < -totalEvents / 2) offset += totalEvents;
 
       // Calculate angle: active card (offset = 0) has normAngle = 0 -> x = 0 (CENTERED IN MIDDLE)
-      const normAngle = offset * 36;
+      const angleStep = isMobile ? 70 : 36;
+      const normAngle = offset * angleStep;
       const rad = (normAngle * Math.PI) / 180;
       const cosVal = Math.cos(rad);
 
       const x = Math.sin(rad) * radiusX;
-      const y = -20;
+      const y = isMobile ? -8 : -20;
       const z = cosVal * radiusZ - radiusZ;
 
-      const rotateY = normAngle * 0.5;
-      const scale = isMobile ? (0.8 + 0.2 * cosVal) : (0.75 + 0.25 * cosVal);
-      const opacity = Math.abs(offset) > 3 ? 0 : (cosVal > -0.3 ? Math.pow((cosVal + 0.3) / 1.3, 0.6) : 0);
+      const rotateY = isMobile ? normAngle * 0.22 : normAngle * 0.5;
+      const scale = isMobile ? (offset === 0 ? 1 : 0.70) : (0.75 + 0.25 * cosVal);
+      const opacity = isMobile 
+        ? (offset === 0 ? 1 : (Math.abs(offset) === 1 ? 0.28 : 0))
+        : (Math.abs(offset) > 3 ? 0 : (cosVal > -0.3 ? Math.pow((cosVal + 0.3) / 1.3, 0.6) : 0));
       const zIndex = 1000 - Math.round(Math.abs(offset) * 20);
 
       const targetProps = {
@@ -62,13 +64,14 @@ export default function RotatingEventsSection({ onSelectEvent }) {
         scale,
         opacity,
         zIndex,
-        pointerEvents: offset === 0 ? 'auto' : (Math.abs(offset) === 1 ? 'auto' : 'none')
+        pointerEvents: offset === 0 ? 'auto' : (Math.abs(offset) === 1 ? 'auto' : 'none'),
+        force3D: true
       };
 
       if (animate) {
         gsap.to(card, {
           ...targetProps,
-          duration: 0.5,
+          duration: 0.35,
           ease: 'power2.out',
           overwrite: 'auto'
         });
@@ -79,38 +82,16 @@ export default function RotatingEventsSection({ onSelectEvent }) {
   };
 
   useLayoutEffect(() => {
-    const section = sectionRef.current;
-    const wheel = wheelRef.current;
-    if (!section || !wheel || totalEvents === 0) return;
+    // Initial wheel render with active card dead center (NO scroll pinning)
+    updateWheelPosition(activeIndex, false);
 
-    const ctx = gsap.context(() => {
-      // Initial wheel render with active card dead center
-      updateWheelPosition(activeIndex, false);
+    const onResize = () => {
+      updateWheelPosition(activeIndexRef.current, false);
+    };
 
-      const st = ScrollTrigger.create({
-        trigger: section,
-        start: 'top 20px',
-        end: () => `+=${Math.max(window.innerHeight * 0.9, totalEvents * 140)}`,
-        pin: true,
-        scrub: 0.5,
-        invalidateOnRefresh: true,
-        anticipatePin: 1,
-        onUpdate: (self) => {
-          const targetIdx = Math.min(totalEvents - 1, Math.max(0, Math.floor(self.progress * totalEvents)));
-          setActiveIndex(targetIdx);
-        }
-      });
-
-      return () => st.kill();
-    }, sectionRef);
-
-    const timer = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 200);
-
+    window.addEventListener('resize', onResize);
     return () => {
-      clearTimeout(timer);
-      ctx.revert();
+      window.removeEventListener('resize', onResize);
     };
   }, [filteredEvents, totalEvents]);
 
@@ -144,6 +125,40 @@ export default function RotatingEventsSection({ onSelectEvent }) {
     return () => observer.disconnect();
   }, []);
 
+  // Touch swipe support for mobile wheel rotation
+  useEffect(() => {
+    const wheel = wheelRef.current;
+    if (!wheel) return;
+
+    let touchStartX = 0;
+    let touchMoved = false;
+
+    const onTouchStart = (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchMoved = false;
+    };
+
+    const onTouchEnd = (e) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 40) {
+        if (diff > 0) {
+          rotateStep('next');
+        } else {
+          rotateStep('prev');
+        }
+      }
+    };
+
+    wheel.addEventListener('touchstart', onTouchStart, { passive: true });
+    wheel.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      wheel.removeEventListener('touchstart', onTouchStart);
+      wheel.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [totalEvents]);
+
   // Optional auto-rotate continuous animation when toggled on by user
   useEffect(() => {
     if (!isAutoPlay || !isVisible || totalEvents === 0) return;
@@ -168,7 +183,7 @@ export default function RotatingEventsSection({ onSelectEvent }) {
       <div className="events-section-header">
         <div className="section-label">
           <span>04 / UPCOMING EVENTS & COMPETITIONS</span>
-          <span>SCROLL DOWN TO ROTATE OR USE NAV ARROWS · {totalEvents} EVENTS</span>
+          <span>USE NAV ARROWS, SWIPE OR AUTO-PLAY TO ROTATE · {totalEvents} EVENTS</span>
         </div>
 
         <div className="events-title-row">
@@ -244,22 +259,13 @@ export default function RotatingEventsSection({ onSelectEvent }) {
                   <p className="event-card-desc">{e.description}</p>
                 </div>
 
-                {/* Event Footer - Fully Visible with DETAILS Button */}
+                {/* Event Footer */}
                 <div className="event-card-footer">
                   <div className="event-venue-info">
                     <MapPin size={13} className="venue-icon" />
                     <span>{e.venue}</span>
                   </div>
-                  <button
-                    className="event-action-btn"
-                    onClick={(evt) => {
-                      evt.stopPropagation();
-                      onSelectEvent && onSelectEvent(e);
-                    }}
-                  >
-                    <span>DETAILS</span>
-                    <ArrowUpRight size={15} />
-                  </button>
+                  <span className="event-entry-tag">{e.entryFee || 'Free Entry'}</span>
                 </div>
               </div>
             );
